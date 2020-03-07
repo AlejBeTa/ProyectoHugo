@@ -10,7 +10,7 @@ int main()
     int dos = 2;
     int uno = 1;
     int x;
-    int m;
+    int n;
     int a;
     float resultado;
     int result;
@@ -19,25 +19,33 @@ int main()
     cout << "Ingrese un numero a positivo menor a 100000: \n(Si ingresa un numero fuera del rango o un string el numero y el crapulo seran 0)" << endl;
     cin >> a;
     cout << "Ingrese un numero m positivo menor a 100000: \n(Si ingresa un numero fuera del rango o un string el numero y el crapulo seran 0)" << endl;
-    cin >> m;
+    cin >> n;
 
 
     _asm {
-        mov esi,0
+        mov esi,0                       ;Inicializamos el registro de apuntadores                                
         finit
-        fld uno
-        mov eax, m
-        mov ebx, 2        
-        mul ebx
+        mov eax, n                      ;Iniciamos el calculo de 1 / (m*2 + 1)
+        mov ebx, 2                      ;Número que usaremos para multiplicar a m
+        mul ebx                         
         inc eax 
-        mov result, eax
+        mov result, eax                 ;Las pilas no permiten apilar registros 
+        fld uno                         ;Apilamos el número uno, el cual dividiremos n*2 + 1
         fld result
-        fdiv
-        fstp resultado
+        fdiv                            
+        fstp resultado                  ;Desapilamos el resultado.
+        fstp st(0)                      ;Desapilamos el tope de la pila, así preparamos la siguiente operación.
+        fld x                           ; Próxima operación (x/a) ^ (2*n + 1)
+        fld a                           
+        fdiv 
+        fstp resultado                  ;resultado de x/a
+        fstp st(0)                      ;Desapilamos el tope de la pila, así preparamos la siguiente operación.
+
         fwait
     }
 
     cout << resultado << endl;
+
     getchar();
 }
 
