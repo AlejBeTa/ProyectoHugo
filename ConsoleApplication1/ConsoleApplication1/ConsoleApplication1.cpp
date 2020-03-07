@@ -2,48 +2,42 @@
 //Calculará la tangente x divido entra con una serie de Taylor
 
 #include <iostream>
+
 using namespace std;
 
 int main()
 {
     int dos = 2;
+    int uno = 1;
     int x;
     int m;
     int a;
-    double resultado;
-
+    float resultado;
+    int result;
     cout << "Ingrese un numero x positivo menor a 100000: \n(Si ingresa un numero fuera del rango o un string el numero y el crapulo seran 0)" << endl;
     cin >> x;
     cout << "Ingrese un numero a positivo menor a 100000: \n(Si ingresa un numero fuera del rango o un string el numero y el crapulo seran 0)" << endl;
     cin >> a;
     cout << "Ingrese un numero m positivo menor a 100000: \n(Si ingresa un numero fuera del rango o un string el numero y el crapulo seran 0)" << endl;
     cin >> m;
+
+
     _asm {
-        mov esi,0                       ;Se inicializa el registro para poder usar la pila de la FPU
+        mov esi,0
         finit
-        fild dos                        ;Se apila el numero dos para determinar si m es par
-        fild m 
-        fprem1                          ;Aqui se calcula m%2 y se apila
-        fstp resultado                  ;Se desapila el residuo de m/2
-        cmp resultado,0
-        jnz par
-        impar:                          ;Desde aqui empieza la ejecucion de la suma cuando m es impar
-            mov cx,m                    ;Usaremos el for loop
-            xor resultado,resultado     ;Se convierte el resultado en 0 para poder sumar sin ningun valor extra
-        jmp fuera                       ;Se termina la ejecucion
-        par:                            ;Se comienza la ejecucion de la suma si m es par
-            mov cx, m                   ;Usaremos el for loop
-        fuera:
+        fld uno
+        mov eax, m
+        mov ebx, 2        
+        mul ebx
+        inc eax 
+        mov result, eax
+        fld result
+        fdiv
+        fstp resultado
         fwait
     }
-    if (resultado==0)
-    {
-        cout << "el numero m es par "<<a;
-    }
-    else {
-        cout << "el numero m es impar"<<a;
-    }
-    
+
+    cout << resultado << endl;
     getchar();
 }
 
