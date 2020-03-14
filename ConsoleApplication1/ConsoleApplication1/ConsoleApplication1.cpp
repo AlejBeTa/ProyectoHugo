@@ -18,7 +18,7 @@ int main()
     double atan=0.0;
     cout << "Ingrese un numero x: " << endl;
     cin >> x;
-    cout << "Ingrese un numero a positivo menor que x: " << endl;
+    cout << "Ingrese un numero a: " << endl;
     cin >> a;
     cout << "Ingrese un numero n positivo: " << endl;
     cin >> n;
@@ -74,7 +74,7 @@ int main()
                 mov ecx,result     ;Usaremos un ciclo para hallar (x/a)^(2*n+1), hará 2*n+1 repeticiones
                 fld auxi           ;Apilamos x/a para hallar la potencia
 
-        powax:                      ;Aqui inicia el calculo de la potencia              
+        powax:                     ;Aqui inicia el calculo de la potencia              
                     jecxz finpowax
                     fmul auxi           
                     dec ecx
