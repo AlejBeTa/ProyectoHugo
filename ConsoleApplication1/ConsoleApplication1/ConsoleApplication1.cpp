@@ -7,14 +7,15 @@ using namespace std;
 
 int main()
 {
-    int dos;
-    int uno;
-    int x;
+    double auxi = 0.0;
+    double dos=2.0;
+    double uno=1.0;
+    double x=0.0;
     int n=0;
-    int a;
-    double resultado=0;
-    int result;
-    double atan=0;
+    double a=0.0;
+    double resultado=0.0;
+    int result=0;
+    double atan=0.0;
     cout << "Ingrese un numero x positivo menor a 100000: " << endl;
     cin >> x;
     cout << "Ingrese un numero a positivo menor a 100000: " << endl;
@@ -24,87 +25,71 @@ int main()
 
 
     _asm {
-        mov uno,1                  ;Variable uno tiene el valor de 1, lo usaremos más tarde
-        mov dos,2                  ;Varibale dos tiene el valor de 2, lo usaremos más tarde
-
         taylor:                    ;Aqui comienza la serie para calcular el atan(x/a)
-            mov esi,0                  ;Inicializamos el registro de apuntadores                                
-            finit                      ;Iniciamos el coprocesador
+            mov esi,0                  
             cmp n,0                ;Se separa en cuando n>0 y n=0 que seria la ultima iteracion
-            jnz suma               ;si n>0 se va a calcular la suma, sino a la sumatoria se le agregra a/x
-            fld x                  ;Se apila x para dividir por a
-            fld a                  ;Se apila a
+            jnz suma               ;si n>0 se va a calcular la suma, sino a la sumatoria se le agrega a/x
+            fld x                 
+            fld a                  
             fdiv                   ;Se calcula x/a y se guarda en st(0)
             fld atan               ;Apilamos atan, que es el valor de la serie de 1 a n
-            fadd                   ;Sumamos x/a a el valor de la serie que llevamos
+            fadd                   
             fstp atan              ;Se recupera el resultado listo para imprimir
             jmp fin                ;Se termina la serie, ya que en n=0, la expresion toma el valor de a/x
 
         suma:                      ;Sumatoria desde 1 hasta n
                 mov eax, n         ;Iniciamos el calculo de 1 / (n*2 + 1)
                 mov ebx, 2         ;Número que usaremos para multiplicar a n
-                mul ebx            ;Multiplicamos n por 2
-                inc eax            ;Le sumamos 1 a n*2
-                mov result, eax    ;Guardamos el resultado de n*2+1 en result
-                fld uno            ;Apilamos el número uno, el cual dividiremos n*2 + 1
-                fld result         ;Apilamos n*2+1
-                fdiv               ;Dividimos 1 sobre 2*n+1
-                fstp resultado     ;Desapilamos el resultado de 1/(2*n+1).
+                mul ebx                
+                mov result, eax    ;Guardamos el resultado de n*2 en result
+                fild n
+                fmul dos
+                fstp auxi          
+                fld auxi
+                fld uno
+                fadd
+                fstp resultado     ;En resultado esta guardado 2*n+1               
                 fstp st(0)         ;Desapilamos el tope de la pila, así preparamos la pila para la siguiente operación.
-                mov ecx,result     ;Usaremos el ciclo for para hallar x^(2*n+1), hará 2*n+2 repeticiones
+                fld x              ;Se apila x para dividir por a
+                fld a              ;Se apila a
+                fdiv               
+                fstp auxi          ;Se guarda x/a en auxi
+                mov ecx,result     ;Usaremos un ciclo para hallar (x/a)^(2*n+1), hará 2*n+1 repeticiones
+                fld auxi           ;Apilamos x/a para hallar la potencia
 
-        powx:                      ;Aqui inicia el calculo de x^(2*n+1)
-                    mov eax,x      ;Movemos al registro eax el valor de x para poder multiplicarlo despues
-                    mul uno        ;Multiplicamos x por lo que hay en la variable uno, el resultado se guarda en eax
-                    mov uno,eax    ;Movemos el resultado de uno*x a la variable uno.
-                loop powx          ;Fin del calculo de x^(2*n+1)
-                mov eax,uno        ;Sacamos el resultado de la variable uno para guardarlo en el registro eax
-                mov ebx, x         ;Guardamos una copia en ebx del valor x para recupearlo después
-                mov x,eax          ;x^(2*n+1) queda en x para usarlo despues en la division
-                mov uno,1          ;La variable vuelve a su valor original
-                mov ecx, result    ;Usaremos el ciclo for para hallar a^(2*n+1), hará 2*n+2 repeticiones
+        powax:                      ;Aqui inicia el calculo de la potencia              
+                    jecxz finpowax
+                    fmul auxi           
+                    dec ecx
+                    jmp powax
+        finpowax:
 
-        powa:                      ;Es exactamente igual que powx, solo que esta vez se usara el valor de a
-                    mov eax,a
-                    mul uno                 
-                    mov uno,eax
-                loop powa          ;Aqui se acaba el calculo de a^(2*n+1)
-                mov eax, uno       ;Sacamos el resultado de la variable uno para guardarlo en el registro eax
-                mov edx, a         ;Guardamos una copia en edx del valor a para recupearlo después
-                mov a, eax         ;a^(2*n+1) se guarda en la variable a para usarse en la division
-                mov uno, 1         ;La variable uno toma su valor original (1)
-                fld x              ;Añadimos x (x^(2*n+1)) a la pila 
-                fld a              ;Añadimos a (a^(2*n+1)) a la pila
-                fdiv               ;Dividimos x/a y el resultado queda en st(0)
-                fld resultado      ;Apilamos resultado(1/(2*n+1))
-                fmul               ;Multiplicamos st(0)*st(1)=(1/(2*n+1))*((x/a)^(2*n+1))
-                fchs               ;Cambio el signo de la multiplicacion anteior, ahora queda negativa      
-                fstp resultado     ;Guardo la -(1/(2*n+1))*((x/a)^(2*n+1)) en la variable resultado
-                fild dos           ;Apilo el numero 2 para verificar si n es par o no
-                fild n             ;Apilo n para sacarle el modulo con 2
-                fprem1             ;Calculo m%2
+                fstp auxi          ;En auxi queda guardado(x / a) ^ (2 * n + 1)
+                fld auxi
+                fld resultado      ;Apilamos resultado (2*n+1) 
+                fdiv                    
+                fstp resultado     ;Guardo (1/(2*n+1))*((x/a)^(2*n+1)) en la variable resultado
+                fld dos            ;Apilo el numero 2 para verificar si n es par o no
+                fild n             
+                fprem1             
                 fstp result        ;Guardo el modulo en la variable result
-                cmp result,0       ;Comparo el m%2 con 0
-                jz par             ;Si el m%2 es 0, entonces es par
-                fld resultado      ;Apilo el valor negativo que tengo en resultado
+                cmp result,0       
+                jz par             
                 fld atan           ;Apilo el valor que llevo de la serie de Taylor
-                fadd               ;Resto (resultado es negativo) lo que llevo de la serie con el valor de resultado 
+                fld resultado                     
+                fsub                
                 fstp atan          ;Guardo el resultado en la variable atan
                 jmp seguir         ;Aqui termina la iteracion y salta a reajustar algunos valores
 
         par:                       ;Instrucciones cuando n es par
                     fld atan       ;Apilo el valor de serie que se lleva hasta ahora
-                    fld resultado  ;Apilo -(1/(2*n+1))*((x/a)^(2*n+1))
-                    fabs           ;Le saco valor absoluto a -(1/(2*n+1))*((x/a)^(2*n+1))
-                    fadd           ;Sumo lo que se lleva de la serie con (1/(2*n+1))*((x/a)^(2*n+1))
-                    fstp atan      ;Se guarda el resultado de la suma en atan
+                    fld resultado  
+                    fadd           
+                    fstp atan      ;Guardo el resultado en la variable atan
 
-        seguir:                    ;Aqui se termino de calcular el valor de enesima serie de Taylor
-                    mov eax,n      ;Se empieza ajustando el valor n
-                    dec eax        ;Se resta 1 al valor de n que esta guardado en eax
-                    mov n,eax      ;Se guarda n-1 en n
-                    mov x,ebx      ;Se recupera el valor x inicial
-                    mov a,edx      ;Se recupera el valor a inicial
+        seguir:                    ;Aqui se termina de calcular el valor de enesima serie de Taylor
+                    
+                    sub n, 1
                     jmp taylor     ;Si n>=0, salta a hacer otra enesima serie de Taylor
 
         fin:                       ;Se acaba el calculo y el valor queda guardado en atan
