@@ -16,17 +16,34 @@ int main()
     double resultado=0.0;
     int result=0;
     double atan=0.0;
-    cout << "Ingrese un numero x positivo menor a 100000: " << endl;
+    cout << "Ingrese un numero x: " << endl;
     cin >> x;
-    cout << "Ingrese un numero a positivo menor a 100000: " << endl;
+    cout << "Ingrese un numero a positivo menor que x: " << endl;
     cin >> a;
-    cout << "Ingrese un numero n positivo menor a 147: " << endl;
+    cout << "Ingrese un numero n positivo: " << endl;
     cin >> n;
 
 
     _asm {
+        mov esi, 0
+        finit
+        cmp n,0
+        jle fin                    ;Se termina la ejecucion si n es negativo
+        fld a
+        fldz
+        fcomip st(0), st(1)
+        fstp st(0)                 ;Esta instruccion sirve para dejar libre la pila
+        fstp st(0)
+        je fin                     ;Se termina la ejecucion si a es 0
+        fld a
+        fabs
+        fld x
+        fabs
+        fcomip st(0),st(1)
+        jae fin                    ;Se termina la ejecucion si x>=a
         taylor:                    ;Aqui comienza la serie para calcular el atan(x/a)
-            mov esi,0                  
+            mov esi, 0
+            finit
             cmp n,0                ;Se separa en cuando n>0 y n=0 que seria la ultima iteracion
             jnz suma               ;si n>0 se va a calcular la suma, sino a la sumatoria se le agrega a/x
             fld x                 
